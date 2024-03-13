@@ -1,0 +1,38 @@
+﻿@page "/example01"
+@rendermode InteractiveServer
+
+<h3>Get Cat Fact!</h3>
+
+<button @onclick="GetFact">Get Cat Fact!</button>
+
+@if (fact != null)
+{
+    <p>@fact.fact</p>
+}
+else
+{
+    <p>Click to get cat fact!</p>
+}
+
+
+@code {
+    public Fact fact;
+
+    public class Fact
+    {
+        public string fact { get; set; }
+    }
+
+    public async Task GetFact()
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+            fact = await httpClient.GetFromJsonAsync<Fact>("https://catfact.ninja/fact");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error at get Cat Fact: {ex.Message}");
+        }
+    }
+}

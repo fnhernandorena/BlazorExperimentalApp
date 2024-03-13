@@ -1,0 +1,58 @@
+﻿@page "/example04"
+@rendermode InteractiveServer
+
+<div>
+    @foreach (var image in dayImages)
+    {
+        <div>
+            <img src="@GetImageUrl(image)" class="rounded-3xl" alt="NASA policromatic Image @(dayImages.IndexOf(image))" />
+            <p class="my-4">Coordinates: Latitude: @image.centroid_coordinates.lat, Longitude: @image.centroid_coordinates.lon</p>
+            <p class="my-4 border-b-2 border-gray-500 mb-72">@image.caption</p>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ImageData> dayImages = new List<ImageData>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetDayImages();
+    }
+
+    private async Task GetDayImages()
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+            var response = await httpClient.GetFromJsonAsync<ImageData[]>("https://api.nasa.gov/EPIC/api/natural/images?api_key=LLWiwai8ZooMBWMdLnNN1nUlLBjtdNRUe9wjH7pA");
+            dayImages.AddRange(response);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error fetching NASA images: " + ex.Message);
+        }
+    }
+
+    private string GetImageUrl(ImageData image)
+    {
+        var dateString = image.date;
+        var dateParts = dateString.Split(' ');
+        var date = dateParts[0].Split('-');
+        return $"https://api.nasa.gov/EPIC/archive/natural/{date[0]}/{date[1]}/{date[2]}/png/{image.image}.png?api_key=LLWiwai8ZooMBWMdLnNN1nUlLBjtdNRUe9wjH7pA";
+    }
+
+    public class ImageData
+    {
+        public string date { get; set; }
+        public string image { get; set; }
+        public CentroidCoordinates centroid_coordinates { get; set; }
+        public string caption { get; set; }
+    }
+
+    public class CentroidCoordinates
+    {
+        public double lat { get; set; }
+        public double lon { get; set; }
+    }
+}

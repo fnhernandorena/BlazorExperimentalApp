@@ -1,0 +1,52 @@
+﻿@page "/example03"
+@rendermode InteractiveServer
+
+<h3 class="text-center bg-gray-700 p-4 rounded-2xl m-2 text-3xl">@dayImage.title</h3>
+
+@if (mediaType == "image")
+{
+    <img class="my-6" src="@dayImage.url" alt="Nasa Day Image" />
+}
+else if (mediaType == "video")
+{
+    <a href="@dayImage.url">The image of the day is a video, see this!</a>
+}
+else
+{
+    <p>Media type is not valid.</p>
+}
+
+<p class="text-2xl">@dayImage.explanation</p>
+
+@code {
+    private MediaResponse dayImage = new MediaResponse();
+    private string mediaType = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetMedia();
+    }
+
+    private record MediaResponse
+    {
+        public string title { get; init; } = "";
+        public string url { get; init; } = "";
+        public string explanation { get; init; } = "";
+        public string media_type { get; init; } = "";
+    }
+
+    private async Task GetMedia()
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+            var response = await httpClient.GetFromJsonAsync<MediaResponse>("https://api.nasa.gov/planetary/apod?api_key=LLWiwai8ZooMBWMdLnNN1nUlLBjtdNRUe9wjH7pA");
+            dayImage = response;
+            mediaType = dayImage.media_type;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error fetching NASA media: " + ex.Message);
+        }
+    }
+}
